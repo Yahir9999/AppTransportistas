@@ -1,0 +1,69 @@
+body{
+    margin: 0%;
+    padding: 0%;
+}
+
+/* Fondo general de la interfaz */
+.general_container {
+    width: 100vw;
+    height: 100vh;
+    display: flex; 
+    justify-content: center;
+    align-items: center;            
+    flex-direction: column;     
+    background: linear-gradient(
+        to bottom, 
+        #0077b6 40%,
+        #0077b6 40%, 
+        white 40%, 
+        white 100%
+    );
+}
+
+/* Espacio de los elementos del menu */
+.componentes_interfaz {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+/* Espacio donde va a ir el el titulo y una imagen */
+.titulo{
+    width: 100%;
+    height: auto;
+}
+
+/* Espacio donde va el menu de los botones */
+.botones{
+    width: 100%;
+    height: auto;   
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2em;
+}
+
+/* Sección de la card que nos diregie a los diferentes apartados */
+.card{
+    width: 18em;
+}
+
+/* Contenedor de algun texto informativo en la parte inferior de la pagina */
+.contenido_footer{
+    width: 100%;
+    height: 100%;    
+}
+
+/* Responsiva para la vista de celular */
+@media screen and (max-width: 480px){
+    .botones{
+        flex-wrap: wrap;
+    }
+
+    .card{
+        width: 10em;
+    }
+
+}
