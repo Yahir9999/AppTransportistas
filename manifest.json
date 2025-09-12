@@ -8,12 +8,12 @@
     "theme_color": "#2196f3",
     "icons":[
     {
-      "src": "paginas_app/IMG/icono.png",
-      "sizes": "192x192",
+      "src": "paginas_app/IMG/icono-128.png",
+      "sizes": "128x128",
       "type": "image/png"
     },
     {
-      "src": "paginas_app/IMG/icono.png",
+      "src": "paginas_app/IMG/icono-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

@@ -1,31 +1,56 @@
-// Nombre donde se va a guardar el cache
-const cache_name = "app-cache-1";
+// Nombre del cache
+const CACHE_NAME = "app-cache-v2"; // cambia el número si actualizas la app
 
-// Elementos que se van almacenar en el cache, al momento de no haber internet
-const urlsToCache =[
-
+// Archivos que quieres cachear para offline
+const urlsToCache = [
     "/",
     "/index.html",
-    "/index.css",
+    "/paginas_app/CSS/index.css",
     "/app.js"
 ];
 
-// Instalacion del serviceworker
-self.addEventListener("install", (event) =>{
+// Instalación del service worker
+self.addEventListener("install", (event) => {
     console.log("Service worker: Instalando...");
     event.waitUntil(
-        caches.open(cache_name).then((cache) =>{
-            console.log("Service worker: Archivos en caché");
+        caches.open(CACHE_NAME).then((cache) => {
+            console.log("Service worker: Archivos en cache");
             return cache.addAll(urlsToCache);
         })
     );
+    self.skipWaiting(); // fuerza activación inmediata
 });
 
-// Petición
-self.addEventListener("fetch", (event)=>{
-    event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
+// Activación del service worker
+self.addEventListener("activate", (event) => {
+    console.log("Service worker: Activando...");
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cache) => {
+                    if (cache !== CACHE_NAME) {
+                        console.log("Service worker: Borrando cache antiguo", cache);
+                        return caches.delete(cache);
+                    }
+                })
+            );
         })
+    );
+    self.clients.claim(); // toma control de la página inmediatamente
+});
+
+// Fetch: Primero intenta la red, si falla usa cache
+self.addEventListener("fetch", (event) => {
+    event.respondWith(
+        fetch(event.request)
+            .then((response) => {
+                // Clonar la respuesta y guardarla en cache
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, responseClone);
+                });
+                return response;
+            })
+            .catch(() => caches.match(event.request)) // si no hay internet, usa cache
     );
 });
