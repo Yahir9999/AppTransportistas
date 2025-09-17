@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../CSS/index.css">
+    <title>Entrada CEDIS</title>
+</head>
+<body>
+    <div class="fondo_escaner">
+    <!-- Apartado donde se va a visualizar el codigo qr-->
+        <!-- Contenedor donde se verá la cámara -->
+        <div id="reader" style="width:300px"></div>
+
+        <!-- Para mostrar lo que se escaneó -->
+        <p id="resultado"></p>
+
+        <!-- Librería html5-qrcode -->
+        <script src="https://unpkg.com/html5-qrcode"></script>
+        <script src="../JavaScript/scanner.js"></script>
+
+    </div>
+</body>
+</html>
