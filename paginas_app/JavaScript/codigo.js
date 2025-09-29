@@ -8,15 +8,14 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 // Variables globales
 let qrResultado = ""; 
 let html5QrcodeScanner = null;
-let estaEscaneando = false;
 
 // Función para verificar si el transportista ya existe
 async function verificarTransportistaExistente(nombreTransportista) {
     try {
         const { data, error } = await supabase
             .from('transportistas')
-            .select('codigo_qr, fecha_escaneo')
-            .eq('codigo_qr', nombreTransportista);
+            .select('nombre_transportista')
+            .eq('nombre_transportista', nombreTransportista);
 
         if (error) {
             console.error('Error al verificar:', error);
@@ -52,7 +51,7 @@ async function guardarEnSupabase(datosQR) {
             .from('transportistas')
             .insert([
                 { 
-                    codigo_qr: datosQR,
+                    nombre_transportista: datosQR,
                     fecha_escaneo: new Date().toISOString()
                 }
             ]);
@@ -74,36 +73,29 @@ async function guardarEnSupabase(datosQR) {
     }
 }
 
-// Función para detener el escáner
+// Función para detener el escáner permanentemente
 function detenerEscaner() {
-    if (html5QrcodeScanner && estaEscaneando) {
+    if (html5QrcodeScanner) {
         html5QrcodeScanner.clear().then(() => {
-            console.log('Escáner detenido');
-            estaEscaneando = false;
-            document.getElementById('reader').innerHTML = '<p class="text-center text-success">Escaneo completado ✅</p>';
+            console.log('Escáner detenido permanentemente');
+            // Mostrar mensaje de que el escaneo terminó
+            document.getElementById('reader').innerHTML = `
+                <div class="text-center">
+                    <h4 class="text-success">✅ Escaneo completado</h4>
+                    <p>Transportista: ${qrResultado}</p>
+                    <button class="btn btn-primary mt-3" onclick="location.reload()">
+                        Escanear otro código
+                    </button>
+                </div>
+            `;
         }).catch(error => {
             console.error('Error al detener escáner:', error);
         });
     }
 }
 
-// Función para reiniciar el escáner
-function reiniciarEscaner() {
-    detenerEscaner();
-    setTimeout(() => {
-        iniciarEscaner();
-    }, 2000); // Esperar 2 segundos antes de reiniciar
-}
-
 // Cuando el escaneo es exitoso
 async function onScanSuccess(decodedText, decodedResult) {
-    // Evitar múltiples escaneos simultáneos
-    if (estaEscaneando) {
-        console.log('Ya se está procesando un escaneo...');
-        return;
-    }
-    
-    estaEscaneando = true;
     console.log(`Código detectado: ${decodedText}`);
     
     // Guardamos el contenido en la variable
@@ -112,20 +104,11 @@ async function onScanSuccess(decodedText, decodedResult) {
     // Mostrar resultado
     console.log("Variable qrResultado:", qrResultado);
 
-    // Detener el escáner inmediatamente
+    // Detener el escáner inmediatamente (antes de guardar)
     detenerEscaner();
 
     // Guardar en Supabase (con verificación)
-    const resultado = await guardarEnSupabase(qrResultado);
-    
-    // Opción 1: Mantener escáner detenido (comentado)
-    // estaEscaneando = false;
-    
-    // Opción 2: Reiniciar automáticamente después de 3 segundos
-    setTimeout(() => {
-        estaEscaneando = false;
-        reiniciarEscaner();
-    }, 3000);
+    await guardarEnSupabase(qrResultado);
 }
 
 // Manejo de errores
@@ -133,8 +116,8 @@ function onScanFailure(error) {
     console.warn(`Error al escanear: ${error}`);
 }
 
-// Función para iniciar el escáner
-function iniciarEscaner() {
+// Inicializamos el escáner cuando la página cargue
+document.addEventListener('DOMContentLoaded', function() {
     html5QrcodeScanner = new Html5QrcodeScanner(
         "reader",
         { 
@@ -146,11 +129,4 @@ function iniciarEscaner() {
     );
 
     html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-    estaEscaneando = true;
-    console.log('Escáner iniciado');
-}
-
-// Inicializamos el escáner cuando la página cargue
-document.addEventListener('DOMContentLoaded', function() {
-    iniciarEscaner();
 });
