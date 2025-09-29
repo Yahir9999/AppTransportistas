@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../CSS/index.css">
     <title>Entrada CEDIS</title>
 </head>
 <body>
     <div class="fondo_escaner">
-    <!-- Apartado donde se va a visualizar el codigo qr-->
-        <!-- Contenedor donde se verá la cámara -->
-        <div id="reader" style="width:300px"></div>
+        <div id="reader"></div>
 
-        <!-- Para mostrar lo que se escaneó -->
-        <p id="resultado"></p>
-
-        <!-- Librería html5-qrcode -->
-        <script src="https://unpkg.com/html5-qrcode"></script>
-        <script src="../JavaScript/scanner.js"></script>
-
+        <!-- Cargar Supabase desde CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+        <!-- Bootstrap -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Script para QR -->
+        <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+        <!-- Tu archivo JS (sin type="module") -->
+        <script src="../JavaScript/codigo.js"></script>  
     </div>
 </body>
 </html>
