@@ -52,7 +52,6 @@ async function guardarEnSupabase(datosQR) {
             .insert([
                 { 
                     nombre_transportista: datosQR,
-                    fecha_escaneo: new Date().toISOString()
                 }
             ]);
 
