@@ -5,23 +5,24 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 // Crear cliente Supabase
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Variable global donde guardaremos el contenido escaneado
+// Variables globales
 let qrResultado = ""; 
+let html5QrcodeScanner = null;
+let estaEscaneando = false;
 
 // Función para verificar si el transportista ya existe
 async function verificarTransportistaExistente(nombreTransportista) {
     try {
         const { data, error } = await supabase
             .from('transportistas')
-            .select('nombre_transportista')
-            .eq('nombre_transportista', nombreTransportista);
+            .select('codigo_qr, fecha_escaneo')
+            .eq('codigo_qr', nombreTransportista);
 
         if (error) {
             console.error('Error al verificar:', error);
             return false;
         }
 
-        // Si data tiene elementos, significa que ya existe
         return data && data.length > 0;
 
     } catch (error) {
@@ -40,7 +41,7 @@ async function guardarEnSupabase(datosQR) {
         
         if (yaExiste) {
             console.log('El transportista ya está registrado:', datosQR);
-            alert('Este transportista YA ESTÁ REGISTRADO: ' + datosQR);
+            alert('⚠️ Este transportista YA ESTÁ REGISTRADO: ' + datosQR);
             return 'ya_existe';
         }
 
@@ -51,29 +52,58 @@ async function guardarEnSupabase(datosQR) {
             .from('transportistas')
             .insert([
                 { 
-                  nombre_transportista: datosQR,
+                    codigo_qr: datosQR,
+                    fecha_escaneo: new Date().toISOString()
                 }
             ]);
 
         if (error) {
             console.error('Error al guardar en Supabase:', error);
-            alert('Error al guardar: ' + error.message);
+            alert('❌ Error al guardar: ' + error.message);
             return 'error';
         }
 
         console.log('Datos guardados correctamente:', data);
-        alert('¡Transportista registrado exitosamente!\nNombre: ' + datosQR);
+        alert('✅ ¡Transportista registrado exitosamente!\nNombre: ' + datosQR);
         return 'guardado';
 
     } catch (error) {
         console.error('Error inesperado:', error);
-        alert('Error inesperado: ' + error.message);
+        alert('❌ Error inesperado: ' + error.message);
         return 'error';
     }
 }
 
+// Función para detener el escáner
+function detenerEscaner() {
+    if (html5QrcodeScanner && estaEscaneando) {
+        html5QrcodeScanner.clear().then(() => {
+            console.log('Escáner detenido');
+            estaEscaneando = false;
+            document.getElementById('reader').innerHTML = '<p class="text-center text-success">Escaneo completado ✅</p>';
+        }).catch(error => {
+            console.error('Error al detener escáner:', error);
+        });
+    }
+}
+
+// Función para reiniciar el escáner
+function reiniciarEscaner() {
+    detenerEscaner();
+    setTimeout(() => {
+        iniciarEscaner();
+    }, 2000); // Esperar 2 segundos antes de reiniciar
+}
+
 // Cuando el escaneo es exitoso
 async function onScanSuccess(decodedText, decodedResult) {
+    // Evitar múltiples escaneos simultáneos
+    if (estaEscaneando) {
+        console.log('Ya se está procesando un escaneo...');
+        return;
+    }
+    
+    estaEscaneando = true;
     console.log(`Código detectado: ${decodedText}`);
     
     // Guardamos el contenido en la variable
@@ -82,8 +112,20 @@ async function onScanSuccess(decodedText, decodedResult) {
     // Mostrar resultado
     console.log("Variable qrResultado:", qrResultado);
 
+    // Detener el escáner inmediatamente
+    detenerEscaner();
+
     // Guardar en Supabase (con verificación)
-    await guardarEnSupabase(qrResultado);
+    const resultado = await guardarEnSupabase(qrResultado);
+    
+    // Opción 1: Mantener escáner detenido (comentado)
+    // estaEscaneando = false;
+    
+    // Opción 2: Reiniciar automáticamente después de 3 segundos
+    setTimeout(() => {
+        estaEscaneando = false;
+        reiniciarEscaner();
+    }, 3000);
 }
 
 // Manejo de errores
@@ -91,9 +133,9 @@ function onScanFailure(error) {
     console.warn(`Error al escanear: ${error}`);
 }
 
-// Inicializamos el escáner cuando la página cargue
-document.addEventListener('DOMContentLoaded', function() {
-    let html5QrcodeScanner = new Html5QrcodeScanner(
+// Función para iniciar el escáner
+function iniciarEscaner() {
+    html5QrcodeScanner = new Html5QrcodeScanner(
         "reader",
         { 
             fps: 10, 
@@ -104,4 +146,11 @@ document.addEventListener('DOMContentLoaded', function() {
     );
 
     html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    estaEscaneando = true;
+    console.log('Escáner iniciado');
+}
+
+// Inicializamos el escáner cuando la página cargue
+document.addEventListener('DOMContentLoaded', function() {
+    iniciarEscaner();
 });
